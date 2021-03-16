@@ -32,7 +32,7 @@ func signUp(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&p)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		response, _ := json.Marshal(models.RegisterResponse{User: "", Error: err})
+		response, _ := json.Marshal(err.Error())
 		w.Write(response)
 		return
 	}
@@ -41,11 +41,11 @@ func signUp(w http.ResponseWriter, r *http.Request) {
 	user, error := function.InitUser(p.Username, p.Password)
 	if error != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		response, _ := json.Marshal(models.RegisterResponse{User: "", Error: err})
+		response, _ := json.Marshal("User already registered")
 		w.Write(response)
 		return
 	}
-	response, _ := json.Marshal(models.RegisterResponse{User: user.Username, Error: nil})
+	response, _ := json.Marshal(user)
 	fmt.Println("User is getting registered.Username : " + user.Username)
 	w.Write(response)
 }
