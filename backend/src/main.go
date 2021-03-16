@@ -9,26 +9,15 @@ import (
 	"net/http"
 	"io/ioutil"
 	"github.com/gorilla/mux"
+	"backend/models"
 )
 
-type Credentials struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
-}
 
-type File struct {
-	Filename string `json:"filename"`
-}
-
-type SharedFile struct {
-	Filename string `json:"filename"`
-	Recipient string `json:"recipient"`
-}
 
 func handleRequests() {
 	myRouter := mux.NewRouter().StrictSlash(true)
 	myRouter.HandleFunc("/register", signUp).Methods("POST")
-	myRouter.HandleFunc("/login", signIn)
+	myRouter.HandleFunc("/login/username/{username}", signIn)
 	myRouter.HandleFunc("/storeFile", storeFile).Methods("POST")
 	myRouter.HandleFunc("/appendFile", appendFile).Methods("POST")
 	myRouter.HandleFunc("/loadFile", loadFile)
@@ -36,39 +25,54 @@ func handleRequests() {
 	log.Fatal(http.ListenAndServe(":10000", myRouter))
 }
 
+// The request is http://localhost:10000/register
+// with following body { "username": "dorina", "password":"uka" }
 func signUp(w http.ResponseWriter, r *http.Request) {
-	var p Credentials
+	var p models.Credentials
 	err := json.NewDecoder(r.Body).Decode(&p)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		w.WriteHeader(http.StatusBadRequest)
+		response, _ := json.Marshal(models.RegisterResponse{User: "", Error: err})
+		w.Write(response)
 		return
 	}
 	fmt.Println("username " + p.Username)
 	fmt.Println("password " + p.Password)
 	user, error := function.InitUser(p.Username, p.Password)
 	if error != nil {
-		http.Error(w, error.Error(), http.StatusBadRequest)
+		w.WriteHeader(http.StatusBadRequest)
+		response, _ := json.Marshal(models.RegisterResponse{User: "", Error: err})
+		w.Write(response)
 		return
 	}
+	response, _ := json.Marshal(models.RegisterResponse{User: user.Username, Error: nil})
 	fmt.Println("User is getting registered.Username : " + user.Username)
-	fmt.Fprintf(w, "Person: %+v", user)
+	w.Write(response)
 }
 
+// The request is http://localhost:10000/login/username/dorina
+// with following body { "password":"uka" }
 func signIn(w http.ResponseWriter, r *http.Request) {
-	var p Credentials
+	var p models.Credentials
+	vars := mux.Vars(r)
+	p.Username = vars["username"] // you need to specify "username" string in the url
 	err := json.NewDecoder(r.Body).Decode(&p)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		w.WriteHeader(http.StatusBadRequest)
+		response, _ := json.Marshal(models.LoginResponse{Response: "", Error: err})
+		w.Write(response)
 		return
 	}
 	user, error := function.GetUser(p.Username, p.Password)
 	if error != nil {
-		http.Error(w, error.Error(), http.StatusBadRequest)
+		w.WriteHeader(http.StatusBadRequest)
+		response, _ := json.Marshal(models.LoginResponse{Response: "User not found", Error: err})
+		w.Write(response)
 		return
 	}
 	fmt.Println("Trying to get user with username : " + user.Username)
-	fmt.Fprintf(w, "Person: %+v", p)
-	json.NewEncoder(w).Encode(user.Username)
+	response, _ := json.Marshal(models.LoginResponse{Response: "Login successfully", Error: nil})
+	w.Write(response)
 }
 
 func storeFile(w http.ResponseWriter, r *http.Request) {
@@ -144,7 +148,7 @@ func appendFile(w http.ResponseWriter, r *http.Request) {
 
 func loadFile(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("File loading Endpoint Hit")
-	var f File
+	var f models.File
 	err := json.NewDecoder(r.Body).Decode(&f)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -164,7 +168,7 @@ func loadFile(w http.ResponseWriter, r *http.Request) {
 
 func shareFile(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("File loading Endpoint Hit")
-	var f SharedFile
+	var f models.SharedFile
 	err := json.NewDecoder(r.Body).Decode(&f)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -189,7 +193,7 @@ func createEmployee(w http.ResponseWriter, r *http.Request) {
 		errorResponse(w, "Content Type is not application/json", http.StatusUnsupportedMediaType)
 		return
 	}
-	var e Credentials
+	var e models.Credentials
 	var unmarshalErr *json.UnmarshalTypeError
 
 	decoder := json.NewDecoder(r.Body)

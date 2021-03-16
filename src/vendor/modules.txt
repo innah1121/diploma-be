@@ -1,0 +1,7 @@
+# github.com/cs161-staff/userlib v0.0.0-20210222025138-b2753f6faffd
+## explicit
+# github.com/google/uuid v1.2.0
+## explicit
+# github.com/gorilla/mux v1.8.0
+## explicit
+github.com/gorilla/mux
