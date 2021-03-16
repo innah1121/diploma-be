@@ -1,3 +1,5 @@
+github.com/cs161-staff/userlib v0.0.0-20200712181656-bcd44f03b9e0 h1:38E6H2tN46tucY+rQxfrN2SwTlA1pyNkG8fhDMRmutA=
+github.com/cs161-staff/userlib v0.0.0-20200712181656-bcd44f03b9e0/go.mod h1:9t2oIhd6JdAxSl17vyd2FKZTVqjQq+aHq7TpLGnW1UY=
 github.com/cs161-staff/userlib v0.0.0-20210222025138-b2753f6faffd h1:DnvgYxPaVLMLKy0795FVRRXPX3bZUKI2s1Ym/PCz94Y=
 github.com/cs161-staff/userlib v0.0.0-20210222025138-b2753f6faffd/go.mod h1:iUb8TT+3troKO4o5uh+YVsG24ddJTiOhW/C1IIBj6gE=
 github.com/google/uuid v1.2.0 h1:qJYtXnJRWmpe7m/3XlyhrsLrEURqHRM2kxzoxXqyUDs=
