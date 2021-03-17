@@ -21,8 +21,8 @@ func handleRequests() {
 	// myRouter.HandleFunc("/appendFile", appendFile).Methods("POST")
 	myRouter.HandleFunc("/loadFile", loadFile)
 	myRouter.HandleFunc("/shareFile", shareFile)
-	
-	log.Fatal(http.ListenAndServe(":10000", myRouter))
+	log.Fatal(http.ListenAndServe(":10000", handlers.CORS(handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"}), handlers.AllowedMethods([]string{"GET", "POST", "PUT", "HEAD", "OPTIONS"}), handlers.AllowedOrigins([]string{"*"}))(myRouter)))
+	// log.Fatal(http.ListenAndServe(":10000", myRouter))
 }
 
 // The request is http://localhost:10000/register
