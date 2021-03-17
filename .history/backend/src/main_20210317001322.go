@@ -3,6 +3,7 @@ package main
 import (
 	"backend/function"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -18,9 +19,8 @@ func handleRequests() {
 	myRouter.HandleFunc("/register", signUp).Methods("POST")
 	myRouter.HandleFunc("/login", login)
 	myRouter.HandleFunc("/storeFile", storeFile).Methods("POST")
-	// myRouter.HandleFunc("/appendFile", appendFile).Methods("POST")
+	myRouter.HandleFunc("/appendFile", appendFile).Methods("POST")
 	myRouter.HandleFunc("/loadFile", loadFile)
-	myRouter.HandleFunc("/shareFile", shareFile)
 	
 	log.Fatal(http.ListenAndServe(":10000", myRouter))
 }
@@ -53,7 +53,6 @@ func signUp(w http.ResponseWriter, r *http.Request) {
 func login(w http.ResponseWriter, r *http.Request) {
 	var p models.Credentials
 	err := json.NewDecoder(r.Body).Decode(&p)
-	
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		response, _ := json.Marshal(models.LoginResponse{Response: nil, Error: err})
@@ -71,7 +70,33 @@ func login(w http.ResponseWriter, r *http.Request) {
 	response, _ := json.Marshal(models.LoginResponse{Response: user, Error: nil})
 	w.Write(response)
 }
-// filename , data  needed
+
+
+// The request is http://localhost:10000/login/username/dorina
+// with following body { "password":"uka" }
+func signIn(w http.ResponseWriter, r *http.Request) {
+	var p models.Credentials
+	vars := mux.Vars(r)
+	p.Username = vars["username"] // you need to specify "username" string in the url
+	err := json.NewDecoder(r.Body).Decode(&p)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		response, _ := json.Marshal(models.LoginResponse{Response: "", Error: err})
+		w.Write(response)
+		return
+	}
+	user, error := function.GetUser(p.Username, p.Password)
+	if error != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		response, _ := json.Marshal(models.LoginResponse{Response: "User not found", Error: err})
+		w.Write(response)
+		return
+	}
+	fmt.Println("Trying to get user with username : " + user.Username)
+	response, _ := json.Marshal(models.LoginResponse{Response: "Login successfully", Error: nil})
+	w.Write(response)
+}
+
 func storeFile(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("File Upload Endpoint Hit")
 
@@ -108,13 +133,13 @@ func storeFile(w http.ResponseWriter, r *http.Request) {
     }
     // write this byte array to our temporary file
     tempFile.Write(fileBytes)
-	user, _ := function.GetUser("alice", "fu")
+	user, _ := function.GetUser("alice", "fubar")
 	user.StoreFile(handler.Filename, fileBytes)
 	// (*function.User)(nil).StoreFile(handler.Filename, fileBytes)
     // return that we have successfully uploaded our file!
     fmt.Fprintf(w, "Successfully Uploaded File\n")
 }
-// filename , data  needed
+
 func appendFile(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("File append Endpoint Hit")
     r.ParseMultipartForm(10 << 20)
@@ -142,7 +167,7 @@ func appendFile(w http.ResponseWriter, r *http.Request) {
 	user.AppendFile(handler.Filename, fileBytes)
 	fmt.Fprintf(w, "Successfully Uploaded File\n")
 }
-//filename  needed
+
 func loadFile(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("File loading Endpoint Hit")
 	var f models.File
@@ -152,43 +177,70 @@ func loadFile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	fmt.Println(f.Filename)
-	user, _ := function.GetUser("alice", "fu")
+	user, _ := function.GetUser("alice", "fubar")
 	data, error := user.LoadFile(f.Filename)
 	if error != nil {
 		http.Error(w, error.Error(), http.StatusBadRequest)
 		return
 	}
-	
-	fmt.Println(data)
-	fmt.Println("Trying to get file with user : " + f.Filename)
-	response, _ := json.Marshal(models.ShareFileResponse{Response: "Loaded succesfully", Error: nil})
-	w.Write(response)
-}
-// filename , recipient  needed
-func shareFile(w http.ResponseWriter, r *http.Request) {
-	var p models.ShareFileRequest
-	err := json.NewDecoder(r.Body).Decode(&p)
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		response, _ := json.Marshal(models.ShareFileResponse{Response: "", Error: err})
-		w.Write(response)
-		return
-	}
-	user, _ := function.GetUser(p.Username, p.Password)
-	data, error := user.ShareFile(p.Filename, p.Recipient)
-	
-	if error != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		response, _ := json.Marshal(models.ShareFileResponse{Response: "", Error: err})
-		w.Write(response)
-		return
-	}
-	fmt.Println(data)
-	fmt.Println("Trying to share file with user : " + p.Recipient)
-	response, _ := json.Marshal(models.ShareFileResponse{Response: "Shared succesfully", Error: nil})
-	w.Write(response)
+	fmt.Println("Trying to get file with name : " + f.Filename)
+	fmt.Fprintf(w, "file: %+v", data)
+	json.NewEncoder(w).Encode(data)
 }
 
+func shareFile(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("File loading Endpoint Hit")
+	var f models.SharedFile
+	err := json.NewDecoder(r.Body).Decode(&f)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	fmt.Println(f.Filename)
+	fmt.Println(f.Recipient)
+	user, _ := function.GetUser("alice", "fubar")
+	data, error := user.LoadFile(f.Filename)
+	if error != nil {
+		http.Error(w, error.Error(), http.StatusBadRequest)
+		return
+	}
+	fmt.Println("Trying to get file with name : " + f.Filename)
+	fmt.Fprintf(w, "file: %+v", data)
+	json.NewEncoder(w).Encode(data)
+}
+
+func createEmployee(w http.ResponseWriter, r *http.Request) {
+	headerContentTtype := r.Header.Get("Content-Type")
+	if headerContentTtype != "application/json" {
+		errorResponse(w, "Content Type is not application/json", http.StatusUnsupportedMediaType)
+		return
+	}
+	var e models.Credentials
+	var unmarshalErr *json.UnmarshalTypeError
+
+	decoder := json.NewDecoder(r.Body)
+	decoder.DisallowUnknownFields()
+	err := decoder.Decode(&e)
+	if err != nil {
+		if errors.As(err, &unmarshalErr) {
+			errorResponse(w, "Bad Request. Wrong Type provided for field "+unmarshalErr.Field, http.StatusBadRequest)
+		} else {
+			errorResponse(w, "Bad Request "+err.Error(), http.StatusBadRequest)
+		}
+		return
+	}
+	errorResponse(w, "Success", http.StatusOK)
+	return
+}
+
+func errorResponse(w http.ResponseWriter, message string, httpStatusCode int) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(httpStatusCode)
+	resp := make(map[string]string)
+	resp["message"] = message
+	jsonResp, _ := json.Marshal(resp)
+	w.Write(jsonResp)
+}
 
 func main() {
 	fmt.Println("Rest API v2.0 - Mux Routers")

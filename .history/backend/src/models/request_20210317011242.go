@@ -10,8 +10,6 @@ type File struct {
 }
 
 type ShareFileRequest struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
 	Filename string `json:"filename"`
 	Recipient string `json:"recipient"`
 }

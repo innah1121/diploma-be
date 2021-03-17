@@ -53,7 +53,6 @@ func signUp(w http.ResponseWriter, r *http.Request) {
 func login(w http.ResponseWriter, r *http.Request) {
 	var p models.Credentials
 	err := json.NewDecoder(r.Body).Decode(&p)
-	
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		response, _ := json.Marshal(models.LoginResponse{Response: nil, Error: err})

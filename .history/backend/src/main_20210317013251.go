@@ -53,7 +53,6 @@ func signUp(w http.ResponseWriter, r *http.Request) {
 func login(w http.ResponseWriter, r *http.Request) {
 	var p models.Credentials
 	err := json.NewDecoder(r.Body).Decode(&p)
-	
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		response, _ := json.Marshal(models.LoginResponse{Response: nil, Error: err})
@@ -158,11 +157,9 @@ func loadFile(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, error.Error(), http.StatusBadRequest)
 		return
 	}
-	
-	fmt.Println(data)
-	fmt.Println("Trying to get file with user : " + f.Filename)
-	response, _ := json.Marshal(models.ShareFileResponse{Response: "Loaded succesfully", Error: nil})
-	w.Write(response)
+	fmt.Println("Trying to get file with name : " + f.Filename)
+	fmt.Fprintf(w, "file: %+v", data)
+	json.NewEncoder(w).Encode(data)
 }
 // filename , recipient  needed
 func shareFile(w http.ResponseWriter, r *http.Request) {

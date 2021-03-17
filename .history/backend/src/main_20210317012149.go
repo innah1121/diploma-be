@@ -18,9 +18,8 @@ func handleRequests() {
 	myRouter.HandleFunc("/register", signUp).Methods("POST")
 	myRouter.HandleFunc("/login", login)
 	myRouter.HandleFunc("/storeFile", storeFile).Methods("POST")
-	// myRouter.HandleFunc("/appendFile", appendFile).Methods("POST")
+	myRouter.HandleFunc("/appendFile", appendFile).Methods("POST")
 	myRouter.HandleFunc("/loadFile", loadFile)
-	myRouter.HandleFunc("/shareFile", shareFile)
 	
 	log.Fatal(http.ListenAndServe(":10000", myRouter))
 }
@@ -53,7 +52,6 @@ func signUp(w http.ResponseWriter, r *http.Request) {
 func login(w http.ResponseWriter, r *http.Request) {
 	var p models.Credentials
 	err := json.NewDecoder(r.Body).Decode(&p)
-	
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		response, _ := json.Marshal(models.LoginResponse{Response: nil, Error: err})
@@ -108,7 +106,7 @@ func storeFile(w http.ResponseWriter, r *http.Request) {
     }
     // write this byte array to our temporary file
     tempFile.Write(fileBytes)
-	user, _ := function.GetUser("alice", "fu")
+	user, _ := function.GetUser("alice", "fubar")
 	user.StoreFile(handler.Filename, fileBytes)
 	// (*function.User)(nil).StoreFile(handler.Filename, fileBytes)
     // return that we have successfully uploaded our file!
@@ -152,17 +150,15 @@ func loadFile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	fmt.Println(f.Filename)
-	user, _ := function.GetUser("alice", "fu")
+	user, _ := function.GetUser("alice", "fubar")
 	data, error := user.LoadFile(f.Filename)
 	if error != nil {
 		http.Error(w, error.Error(), http.StatusBadRequest)
 		return
 	}
-	
-	fmt.Println(data)
-	fmt.Println("Trying to get file with user : " + f.Filename)
-	response, _ := json.Marshal(models.ShareFileResponse{Response: "Loaded succesfully", Error: nil})
-	w.Write(response)
+	fmt.Println("Trying to get file with name : " + f.Filename)
+	fmt.Fprintf(w, "file: %+v", data)
+	json.NewEncoder(w).Encode(data)
 }
 // filename , recipient  needed
 func shareFile(w http.ResponseWriter, r *http.Request) {
@@ -176,14 +172,12 @@ func shareFile(w http.ResponseWriter, r *http.Request) {
 	}
 	user, _ := function.GetUser(p.Username, p.Password)
 	data, error := user.ShareFile(p.Filename, p.Recipient)
-	
 	if error != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		response, _ := json.Marshal(models.ShareFileResponse{Response: "", Error: err})
 		w.Write(response)
 		return
 	}
-	fmt.Println(data)
 	fmt.Println("Trying to share file with user : " + p.Recipient)
 	response, _ := json.Marshal(models.ShareFileResponse{Response: "Shared succesfully", Error: nil})
 	w.Write(response)
