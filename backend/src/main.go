@@ -51,19 +51,14 @@ func signUp(w http.ResponseWriter, r *http.Request) {
 }
 
 func login(w http.ResponseWriter, r *http.Request) {
-	var p models.Credentials
-	err := json.NewDecoder(r.Body).Decode(&p)
-	
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		response, _ := json.Marshal(models.LoginResponse{Response: nil, Error: err})
-		w.Write(response)
-		return
-	}
-	user, error := function.GetUser(p.Username, p.Password)
+	v := r.URL.Query()
+    username := v.Get("username")
+	password := v.Get("password")
+	function.InitUser(username, password)
+	user, error := function.GetUser(username, password)
 	if error != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		response, _ := json.Marshal(models.LoginResponse{Response: nil, Error: err})
+		response, _ := json.Marshal(models.LoginResponse{Response: nil, Error: error})
 		w.Write(response)
 		return
 	}
