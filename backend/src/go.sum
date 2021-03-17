@@ -2,8 +2,12 @@ github.com/cs161-staff/userlib v0.0.0-20200712181656-bcd44f03b9e0 h1:38E6H2tN46t
 github.com/cs161-staff/userlib v0.0.0-20200712181656-bcd44f03b9e0/go.mod h1:9t2oIhd6JdAxSl17vyd2FKZTVqjQq+aHq7TpLGnW1UY=
 github.com/cs161-staff/userlib v0.0.0-20210222025138-b2753f6faffd h1:DnvgYxPaVLMLKy0795FVRRXPX3bZUKI2s1Ym/PCz94Y=
 github.com/cs161-staff/userlib v0.0.0-20210222025138-b2753f6faffd/go.mod h1:iUb8TT+3troKO4o5uh+YVsG24ddJTiOhW/C1IIBj6gE=
+github.com/felixge/httpsnoop v1.0.1 h1:lvB5Jl89CsZtGIWuTcDM1E/vkVs49/Ml7JJe07l8SPQ=
+github.com/felixge/httpsnoop v1.0.1/go.mod h1:m8KPJKqk1gH5J9DgRY2ASl2lWCfGKXixSwevea8zH2U=
 github.com/google/uuid v1.2.0 h1:qJYtXnJRWmpe7m/3XlyhrsLrEURqHRM2kxzoxXqyUDs=
 github.com/google/uuid v1.2.0/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
+github.com/gorilla/handlers v1.5.1 h1:9lRY6j8DEeeBT10CvO9hGW0gmky0BprnvDI5vfhUHH4=
+github.com/gorilla/handlers v1.5.1/go.mod h1:t8XrUpc4KVXb7HGyJ4/cEnwQiaxrX/hz1Zv/4g96P1Q=
 github.com/gorilla/mux v1.8.0 h1:i40aqfkR1h2SlN9hojwV5ZA91wcXFOvkdNIeFDP5koI=
 github.com/gorilla/mux v1.8.0/go.mod h1:DVbg23sWSpFRCP0SfiEN6jmj59UnW/n46BH5rLB71So=
 golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2/go.mod h1:djNgcEr1/C05ACkg1iLfiJU5Ep61QUkGW8qpdssI0+w=
