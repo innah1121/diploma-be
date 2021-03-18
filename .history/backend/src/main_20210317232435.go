@@ -138,6 +138,12 @@ func loadFile(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("File loading Endpoint Hit")
 	v := r.URL.Query()
     filename := v.Get("filename")
+	err := json.NewDecoder(r.Body).Decode(&f)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	fmt.Println(f.Filename)
 	user, _ := function.GetUser("alice", "fu")
 	data, error := user.LoadFile(filename)
 	if error != nil {
@@ -146,7 +152,7 @@ func loadFile(w http.ResponseWriter, r *http.Request) {
 	}
 	
 	fmt.Println(data)
-	fmt.Println("Trying to get file with name : " + filename)
+	fmt.Println("Trying to get file with user : " + filename)
 	response, _ := json.Marshal(models.ShareFileResponse{Response: "Loaded succesfully", Error: nil})
 	w.Write(response)
 }

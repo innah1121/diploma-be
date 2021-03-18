@@ -136,17 +136,22 @@ func appendFile(w http.ResponseWriter, r *http.Request) {
 //filename  needed
 func loadFile(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("File loading Endpoint Hit")
-	v := r.URL.Query()
-    filename := v.Get("filename")
+	var f models.File
+	err := json.NewDecoder(r.Body).Decode(&f)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	fmt.Println(f.Filename)
 	user, _ := function.GetUser("alice", "fu")
-	data, error := user.LoadFile(filename)
+	data, error := user.LoadFile(f.Filename)
 	if error != nil {
 		http.Error(w, error.Error(), http.StatusBadRequest)
 		return
 	}
 	
 	fmt.Println(data)
-	fmt.Println("Trying to get file with name : " + filename)
+	fmt.Println("Trying to get file with user : " + f.Filename)
 	response, _ := json.Marshal(models.ShareFileResponse{Response: "Loaded succesfully", Error: nil})
 	w.Write(response)
 }

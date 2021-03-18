@@ -11,6 +11,8 @@ import (
 	"backend/models"
 )
 
+
+
 func handleRequests() {
 	myRouter := mux.NewRouter().StrictSlash(true)
 	myRouter.HandleFunc("/register", signUp).Methods("POST")
@@ -23,6 +25,8 @@ func handleRequests() {
 	log.Fatal(http.ListenAndServe(":10000", myRouter))
 }
 
+// The request is http://localhost:10000/register
+// with following body { "username": "dorina", "password":"uka" }
 func signUp(w http.ResponseWriter, r *http.Request) {
 	var p models.Credentials
 	err := json.NewDecoder(r.Body).Decode(&p)
@@ -62,7 +66,7 @@ func login(w http.ResponseWriter, r *http.Request) {
 	response, _ := json.Marshal(models.LoginResponse{Response: user, Error: nil})
 	w.Write(response)
 }
-
+// filename , data  needed
 func storeFile(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("File Upload Endpoint Hit")
 
@@ -136,17 +140,22 @@ func appendFile(w http.ResponseWriter, r *http.Request) {
 //filename  needed
 func loadFile(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("File loading Endpoint Hit")
-	v := r.URL.Query()
-    filename := v.Get("filename")
+	var f models.File
+	err := json.NewDecoder(r.Body).Decode(&f)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	fmt.Println(f.Filename)
 	user, _ := function.GetUser("alice", "fu")
-	data, error := user.LoadFile(filename)
+	data, error := user.LoadFile(f.Filename)
 	if error != nil {
 		http.Error(w, error.Error(), http.StatusBadRequest)
 		return
 	}
 	
 	fmt.Println(data)
-	fmt.Println("Trying to get file with name : " + filename)
+	fmt.Println("Trying to get file with user : " + f.Filename)
 	response, _ := json.Marshal(models.ShareFileResponse{Response: "Loaded succesfully", Error: nil})
 	w.Write(response)
 }

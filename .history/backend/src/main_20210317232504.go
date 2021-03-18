@@ -146,7 +146,7 @@ func loadFile(w http.ResponseWriter, r *http.Request) {
 	}
 	
 	fmt.Println(data)
-	fmt.Println("Trying to get file with name : " + filename)
+	fmt.Println("Trying to get file with user : " + filename)
 	response, _ := json.Marshal(models.ShareFileResponse{Response: "Loaded succesfully", Error: nil})
 	w.Write(response)
 }
