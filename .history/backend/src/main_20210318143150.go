@@ -191,34 +191,6 @@ func shareFile(w http.ResponseWriter, r *http.Request) {
 	w.Write(response)
 }
 
-func recieveFile(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("File recieving Endpoint Hit")
-	
-	var p models.RecieveFileRequest
-	err := json.NewDecoder(r.Body).Decode(&p)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-	
-	user, _ := function.GetUser(p.SenderUsr, p.SenderPass)
-	user2, _ := function.GetUser(p.RecipientUsr, p.RecipientPass)
-	magic_string, er := user.ShareFile(p.Filename, p.RecipientUsr)
-	if er != nil {
-		http.Error(w, er.Error(), http.StatusBadRequest)
-		return
-	}
-	error := user2.ReceiveFile("file2", p.SenderUsr, magic_string)
-	
-	if error != nil {
-		http.Error(w, error.Error(), http.StatusBadRequest)
-		return
-	}
-	fmt.Println("Trying to share file with user : " + p.RecipientUsr)
-	response, _ := json.Marshal(models.ShareFileResponse{Response: "Recieved succesfully", Error: nil})
-	w.Write(response)
-}
-
 
 func main() {
 	fmt.Println("Rest API v2.0 - Mux Routers")

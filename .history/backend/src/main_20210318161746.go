@@ -197,25 +197,21 @@ func recieveFile(w http.ResponseWriter, r *http.Request) {
 	var p models.RecieveFileRequest
 	err := json.NewDecoder(r.Body).Decode(&p)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		http.Error(w, error.Error(), http.StatusBadRequest)
 		return
 	}
 	
 	user, _ := function.GetUser(p.SenderUsr, p.SenderPass)
 	user2, _ := function.GetUser(p.RecipientUsr, p.RecipientPass)
-	magic_string, er := user.ShareFile(p.Filename, p.RecipientUsr)
-	if er != nil {
-		http.Error(w, er.Error(), http.StatusBadRequest)
-		return
-	}
+	magic_string, err = user.ShareFile(p.Filename, p.RecipientUsr)
 	error := user2.ReceiveFile("file2", p.SenderUsr, magic_string)
 	
 	if error != nil {
 		http.Error(w, error.Error(), http.StatusBadRequest)
 		return
 	}
-	fmt.Println("Trying to share file with user : " + p.RecipientUsr)
-	response, _ := json.Marshal(models.ShareFileResponse{Response: "Recieved succesfully", Error: nil})
+	fmt.Println("Trying to share file with user : " + p.Recipient)
+	response, _ := json.Marshal(models.ShareFileResponse{Response: "Shared succesfully", Error: nil})
 	w.Write(response)
 }
 

@@ -22,6 +22,7 @@ type RecieveFileRequest struct {
 	Filename string `json:"filename"`
 	SenderUsr string `json:"senderU"`
 	SenderPass string `json:"senderP"`
+	MagicString string `json:"magic_string"`
 }
 
 type RevokeFileRequest struct {

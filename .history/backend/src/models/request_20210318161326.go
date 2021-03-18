@@ -17,11 +17,12 @@ type ShareFileRequest struct {
 }
 
 type RecieveFileRequest struct {
-	RecipientUsr string `json:"recipientU"`
-	RecipientPass string `json:"recipientP"`
+	RecipientUsr string `json:"senderU"`
+	RecipientPass string `json:"senderP"`
 	Filename string `json:"filename"`
 	SenderUsr string `json:"senderU"`
 	SenderPass string `json:"senderP"`
+	MagicString string `json:"magic_string"`
 }
 
 type RevokeFileRequest struct {

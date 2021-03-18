@@ -102,9 +102,8 @@ func storeFile(w http.ResponseWriter, r *http.Request) {
         fmt.Println(err)
     }
     // write this byte array to our temporary file
-    //tempFile.Write(fileBytes)
+    // tempFile.Write(fileBytes)
 	user, _ := function.GetUser(username, password)
-	fmt.Println(fileBytes)
 	user.StoreFile(handler.Filename, fileBytes)
 	// (*function.User)(nil).StoreFile(handler.Filename, fileBytes)
     // return that we have successfully uploaded our file!
@@ -147,10 +146,9 @@ func loadFile(w http.ResponseWriter, r *http.Request) {
 	password := v.Get("password")
 	// mbase dhe init user
 	user, _ := function.GetUser(username, password)
-	fmt.Println(user)
-	data, err := user.LoadFile(filename)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+	data, error := user.LoadFile(filename)
+	if error != nil {
+		http.Error(w, error.Error(), http.StatusBadRequest)
 		return
 	}
 	
@@ -161,7 +159,6 @@ func loadFile(w http.ResponseWriter, r *http.Request) {
 }
 // filename , recipient  needed
 func shareFile(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("File sharing Endpoint Hit")
 	var p models.ShareFileRequest
 	err := json.NewDecoder(r.Body).Decode(&p)
 	if err != nil {
@@ -172,14 +169,10 @@ func shareFile(w http.ResponseWriter, r *http.Request) {
 	}
 	
 	user, _ := function.GetUser(p.Username, p.Password)
-	fmt.Println("i got usr maybe")
 	user.LoadFile(p.Filename)
-	fmt.Println("file loading passed")
-	function.InitUser(p.Recipient, p.Password)
 	data, error := user.ShareFile(p.Filename, p.Recipient)
-	fmt.Println("i might be stuck in share")
+	
 	if error != nil {
-		http.Error(w, error.Error(), http.StatusBadRequest)
 		w.WriteHeader(http.StatusBadRequest)
 		response, _ := json.Marshal(models.ShareFileResponse{Response: "", Error: err})
 		w.Write(response)
@@ -188,34 +181,6 @@ func shareFile(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(data)
 	fmt.Println("Trying to share file with user : " + p.Recipient)
 	response, _ := json.Marshal(models.ShareFileResponse{Response: "Shared succesfully", Error: nil})
-	w.Write(response)
-}
-
-func recieveFile(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("File recieving Endpoint Hit")
-	
-	var p models.RecieveFileRequest
-	err := json.NewDecoder(r.Body).Decode(&p)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-	
-	user, _ := function.GetUser(p.SenderUsr, p.SenderPass)
-	user2, _ := function.GetUser(p.RecipientUsr, p.RecipientPass)
-	magic_string, er := user.ShareFile(p.Filename, p.RecipientUsr)
-	if er != nil {
-		http.Error(w, er.Error(), http.StatusBadRequest)
-		return
-	}
-	error := user2.ReceiveFile("file2", p.SenderUsr, magic_string)
-	
-	if error != nil {
-		http.Error(w, error.Error(), http.StatusBadRequest)
-		return
-	}
-	fmt.Println("Trying to share file with user : " + p.RecipientUsr)
-	response, _ := json.Marshal(models.ShareFileResponse{Response: "Recieved succesfully", Error: nil})
 	w.Write(response)
 }
 
