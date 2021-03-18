@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"io/ioutil"
 	"github.com/gorilla/mux"
+	"github.com/gorilla/handlers"
 	"backend/models"
 )
 
