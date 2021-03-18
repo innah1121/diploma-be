@@ -40,11 +40,6 @@ func signUp(w http.ResponseWriter, r *http.Request) {
 		w.Write(response)
 		return
 	}
-	// insForm, err := db.Prepare("INSERT INTO User(username, password) VALUES(?,?)")
-	// if err != nil {
-	//	panic(err.Error())
-	// }
-	// insForm.Exec(username, password)
 	response, _ := json.Marshal(user)
 	fmt.Println("User is getting registered.Username : " + user.Username)
 	w.Write(response)

@@ -17,9 +17,11 @@ func handleRequests() {
 	myRouter.HandleFunc("/register", signUp).Methods("POST")
 	myRouter.HandleFunc("/login", login)
 	myRouter.HandleFunc("/storeFile", storeFile).Methods("POST")
+	// myRouter.HandleFunc("/appendFile", appendFile).Methods("POST")
 	myRouter.HandleFunc("/loadFile", loadFile)
 	myRouter.HandleFunc("/shareFile", shareFile)
 	log.Fatal(http.ListenAndServe(":10000", handlers.CORS(handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"}), handlers.AllowedMethods([]string{"GET", "POST", "PUT", "HEAD", "OPTIONS"}), handlers.AllowedOrigins([]string{"*"}))(myRouter)))
+	// log.Fatal(http.ListenAndServe(":10000", myRouter))
 }
 
 func signUp(w http.ResponseWriter, r *http.Request) {
@@ -40,11 +42,6 @@ func signUp(w http.ResponseWriter, r *http.Request) {
 		w.Write(response)
 		return
 	}
-	// insForm, err := db.Prepare("INSERT INTO User(username, password) VALUES(?,?)")
-	// if err != nil {
-	//	panic(err.Error())
-	// }
-	// insForm.Exec(username, password)
 	response, _ := json.Marshal(user)
 	fmt.Println("User is getting registered.Username : " + user.Username)
 	w.Write(response)
