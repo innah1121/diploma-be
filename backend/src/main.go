@@ -1,17 +1,21 @@
 package main
 
 import (
+	"backend/database"
 	"backend/function"
+	"backend/models"
+	"database/sql"
 	"encoding/json"
 	"fmt"
+	"github.com/gorilla/handlers"
+	"github.com/gorilla/mux"
+	"io/ioutil"
 	"log"
 	"net/http"
-	"io/ioutil"
-	"github.com/gorilla/mux"
-	"github.com/gorilla/handlers"
-	"backend/models"
-	"backend/database"
+	"os"
 )
+
+var db *sql.DB
 
 func handleRequests() {
 	myRouter := mux.NewRouter().StrictSlash(true)
@@ -41,7 +45,7 @@ func signUp(w http.ResponseWriter, r *http.Request) {
 		w.Write(response)
 		return
 	}
-	database.Insert(p)
+	database.InsertUser(db, p)
 	fmt.Println(error)
 	response, _ := json.Marshal(user)
 	fmt.Println("User is getting registered.Username : " + user.Username)
@@ -169,12 +173,12 @@ func shareFile(w http.ResponseWriter, r *http.Request) {
 	username := v.Get("username")
 	password := v.Get("password")
 	recipient := v.Get("recipient")
-	if err != nil {
+	/*if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		response, _ := json.Marshal(models.ShareFileResponse{Response: "", Error: err})
 		w.Write(response)
 		return
-	}
+	}*/
 	
 	user, _ := function.GetUser(username, password)
 	fmt.Println("i got usr maybe")
@@ -186,7 +190,7 @@ func shareFile(w http.ResponseWriter, r *http.Request) {
 	if error != nil {
 		http.Error(w, error.Error(), http.StatusBadRequest)
 		w.WriteHeader(http.StatusBadRequest)
-		response, _ := json.Marshal(models.ShareFileResponse{Response: "", Error: err})
+		response, _ := json.Marshal(models.ShareFileResponse{Response: "", Error: error})
 		w.Write(response)
 		return
 	}
@@ -227,7 +231,12 @@ func recieveFile(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	fmt.Println("Rest API v2.0 - Mux Routers")
+	var err error
+	db, err = database.Connect()
+	if err != nil {
+		fmt.Println("Error connecting db")
+		os.Exit(1)
+	}
+	fmt.Println("Connected to db.")
 	handleRequests()
-	database.Connect()
-
 }
