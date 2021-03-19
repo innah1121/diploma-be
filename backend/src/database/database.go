@@ -77,25 +77,19 @@ func GetByUsernameAndPassword(username string, password string) {
 }*/
 
 func (model *DBModel) GetUser(id string) (string, string, error) {
-	query :=  fmt.Sprintf("SELECT name, password FROM users WHERE id = $1")
-	rows, err := model.db.Query(query, id)
+	var name, password string
+	query :=  fmt.Sprintf("SELECT name, password FROM users WHERE id = '%s'", id)
+	err := model.db.QueryRow(query, id).Scan(&name, &password)
 	if err != nil {
 		return "", "", err
-	}
-	var name, password string
-	for rows.Next(){
-		err := rows.Scan(&name, &password)
-		if err != nil {
-			return "", "", err
-		}
 	}
 	fmt.Println("Name: ", name, "Password: ", password)
 	return name, password, nil
 }
 
 func (model *DBModel) InsertUser(p models.Credentials) error {
-	query := fmt.Sprintf("INSERT INTO users (username, password) VALUES ($1, $2)")
-    _, err := model.db.Query(query, p.Username, p.Password)
+	query := fmt.Sprintf("INSERT INTO users (username, password) VALUES ('%s', '%s')", p.Username, p.Password)
+    _, err := model.db.Query(query)
     if err != nil {
     	return err
 	}
