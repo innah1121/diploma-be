@@ -78,8 +78,7 @@ func GetByUsernameAndPassword(username string, password string) {
 
 func (model *DBModel) GetUser(id string) (string, string, error) {
 	var name, password string
-	query :=  fmt.Sprintf("SELECT name, password FROM users WHERE id = '%s'", id)
-	err := model.db.QueryRow(query, id).Scan(&name, &password)
+	err := model.db.QueryRow("SELECT id, name FROM tags where id = ?", id).Scan(&name, &password)
 	if err != nil {
 		return "", "", err
 	}
