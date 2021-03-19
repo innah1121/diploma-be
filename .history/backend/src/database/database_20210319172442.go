@@ -2,11 +2,8 @@ package database
 
 import (
 	"database/sql"
-	"context"
 	_ "github.com/go-sql-driver/mysql"
 	"fmt"
-	"time"
-	"backend/models"
 )
 var db *sql.DB
 
@@ -31,17 +28,17 @@ type User struct {
     Password string
 }
 
-// func Insert(username string, password string) {
+func Insert(username string, password string) {
 	
-//     fmt.Println("INSERT: Username: " + username + " | Password: " + password)
-//     insForm, err := db.Prepare("INSERT INTO users(username, password) VALUES (?, ?)")
-//         if err != nil {
-//             panic(err.Error())
-//         }
-//         insForm.Exec(username, password)
-//         fmt.Println("INSERT: Username: " + username + " | Password: " + password)
+    fmt.Println("INSERT: Username: " + username + " | Password: " + password)
+    insForm, err := db.Prepare("INSERT INTO users(username, password) VALUES (?, ?)")
+        if err != nil {
+            panic(err.Error())
+        }
+        insForm.Exec(username, password)
+        fmt.Println("INSERT: Username: " + username + " | Password: " + password)
 	
-// }
+}
 
 func GetByUsername(username string) {
    
@@ -62,27 +59,27 @@ func GetByUsernameAndPassword(username string,password string) {
 	fmt.Println(selDB)
     
 }
-func Insert(p models.Credentials) error {  
-    query := "INSERT INTO users(username, password) VALUES (?, ?)"
+func insert(db *sql.DB, p models.Credentials) error {  
+    query := "INSERT INTO product(product_name, product_price) VALUES (?, ?)"
     ctx, cancelfunc := context.WithTimeout(context.Background(), 5*time.Second)
     defer cancelfunc()
     stmt, err := db.PrepareContext(ctx, query)
     if err != nil {
-        fmt.Printf("Error %s when preparing SQL statement", err)
+        log.Printf("Error %s when preparing SQL statement", err)
         return err
     }
     defer stmt.Close()
-    res, err := stmt.ExecContext(ctx, p.Username, p.Password)
+    res, err := stmt.ExecContext(ctx, p.name, p.price)
     if err != nil {
-        fmt.Printf("Error %s when inserting row into products table", err)
+        log.Printf("Error %s when inserting row into products table", err)
         return err
     }
     rows, err := res.RowsAffected()
     if err != nil {
-        fmt.Printf("Error %s when finding rows affected", err)
+        log.Printf("Error %s when finding rows affected", err)
         return err
     }
-    fmt.Printf("%d products created ", rows)
+    log.Printf("%d products created ", rows)
     return nil
 }
 

@@ -41,8 +41,7 @@ func signUp(w http.ResponseWriter, r *http.Request) {
 		w.Write(response)
 		return
 	}
-	database.Insert(p)
-	fmt.Println(error)
+	database.Insert(p.Username, p.Password)
 	response, _ := json.Marshal(user)
 	fmt.Println("User is getting registered.Username : " + user.Username)
 	w.Write(response)
@@ -52,7 +51,6 @@ func login(w http.ResponseWriter, r *http.Request) {
 	v := r.URL.Query()
     username := v.Get("username")
 	password := v.Get("password")
-	// check if exists in my local db ,if return result i go on with the other logic
 	function.InitUser(username, password)
 	user, error := function.GetUser(username, password)
 	if error != nil {
@@ -164,11 +162,8 @@ func loadFile(w http.ResponseWriter, r *http.Request) {
 // filename , recipient  needed
 func shareFile(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("File sharing Endpoint Hit")
-	v := r.URL.Query()
-    filename := v.Get("filename")
-	username := v.Get("username")
-	password := v.Get("password")
-	recipient := v.Get("recipient")
+	var p models.ShareFileRequest
+	err := json.NewDecoder(r.Body).Decode(&p)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		response, _ := json.Marshal(models.ShareFileResponse{Response: "", Error: err})
@@ -176,12 +171,12 @@ func shareFile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	
-	user, _ := function.GetUser(username, password)
+	user, _ := function.GetUser(p.Username, p.Password)
 	fmt.Println("i got usr maybe")
-	user.LoadFile(filename)
+	user.LoadFile(p.Filename)
 	fmt.Println("file loading passed")
-	function.InitUser(recipient, password)
-	data, error := user.ShareFile(filename, recipient)
+	function.InitUser(p.Recipient, p.Password)
+	data, error := user.ShareFile(p.Filename, p.Recipient)
 	fmt.Println("i might be stuck in share")
 	if error != nil {
 		http.Error(w, error.Error(), http.StatusBadRequest)
@@ -191,7 +186,7 @@ func shareFile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	fmt.Println(data)
-	fmt.Println("Trying to share file with user : " + recipient)
+	fmt.Println("Trying to share file with user : " + p.Recipient)
 	response, _ := json.Marshal(models.ShareFileResponse{Response: "Shared succesfully", Error: nil})
 	w.Write(response)
 }
@@ -227,7 +222,15 @@ func recieveFile(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	fmt.Println("Rest API v2.0 - Mux Routers")
-	handleRequests()
-	database.Connect()
-
+	_, err := database.Connect()
+	if err != nil {
+		fmt.Println("Error connecting to db: ", err.Error())
+	}
+	fmt.Println("Connected to db.")
+    handleRequests()
+	// db, err := sql.Open("mysql", "root:root@tcp(127.0.0.1:3306)/test")
+    // if err != nil {
+    //     panic(err.Error())
+    // }
+    // defer db.Close()
 }

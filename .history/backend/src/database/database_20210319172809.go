@@ -62,7 +62,7 @@ func GetByUsernameAndPassword(username string,password string) {
 	fmt.Println(selDB)
     
 }
-func Insert(p models.Credentials) error {  
+func insert(db *sql.DB, p models.Credentials) error {  
     query := "INSERT INTO users(username, password) VALUES (?, ?)"
     ctx, cancelfunc := context.WithTimeout(context.Background(), 5*time.Second)
     defer cancelfunc()

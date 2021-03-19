@@ -31,17 +31,17 @@ type User struct {
     Password string
 }
 
-// func Insert(username string, password string) {
+func Insert(username string, password string) {
 	
-//     fmt.Println("INSERT: Username: " + username + " | Password: " + password)
-//     insForm, err := db.Prepare("INSERT INTO users(username, password) VALUES (?, ?)")
-//         if err != nil {
-//             panic(err.Error())
-//         }
-//         insForm.Exec(username, password)
-//         fmt.Println("INSERT: Username: " + username + " | Password: " + password)
+    fmt.Println("INSERT: Username: " + username + " | Password: " + password)
+    insForm, err := db.Prepare("INSERT INTO users(username, password) VALUES (?, ?)")
+        if err != nil {
+            panic(err.Error())
+        }
+        insForm.Exec(username, password)
+        fmt.Println("INSERT: Username: " + username + " | Password: " + password)
 	
-// }
+}
 
 func GetByUsername(username string) {
    
@@ -62,7 +62,7 @@ func GetByUsernameAndPassword(username string,password string) {
 	fmt.Println(selDB)
     
 }
-func Insert(p models.Credentials) error {  
+func insert(db *sql.DB, p models.Credentials) error {  
     query := "INSERT INTO users(username, password) VALUES (?, ?)"
     ctx, cancelfunc := context.WithTimeout(context.Background(), 5*time.Second)
     defer cancelfunc()

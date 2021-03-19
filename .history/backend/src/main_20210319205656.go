@@ -178,7 +178,7 @@ func shareFile(w http.ResponseWriter, r *http.Request) {
 	
 	user, _ := function.GetUser(username, password)
 	fmt.Println("i got usr maybe")
-	user.LoadFile(filename)
+	user.LoadFile(p.Filename)
 	fmt.Println("file loading passed")
 	function.InitUser(recipient, password)
 	data, error := user.ShareFile(filename, recipient)
