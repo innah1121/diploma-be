@@ -3,6 +3,9 @@
 github.com/cs161-staff/userlib
 # github.com/felixge/httpsnoop v1.0.1
 github.com/felixge/httpsnoop
+# github.com/go-sql-driver/mysql v1.5.0
+## explicit
+github.com/go-sql-driver/mysql
 # github.com/google/uuid v1.2.0
 ## explicit
 github.com/google/uuid

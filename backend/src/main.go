@@ -10,6 +10,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/gorilla/handlers"
 	"backend/models"
+	"backend/database"
 )
 
 func handleRequests() {
@@ -225,6 +226,11 @@ func recieveFile(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	fmt.Println("Rest API v2.0 - Mux Routers")
+	_, err := database.Connect()
+	if err != nil {
+		fmt.Println("Error connecting to db: ", err.Error())
+	}
+	fmt.Println("Connected to db.")
     handleRequests()
 	// db, err := sql.Open("mysql", "root:root@tcp(127.0.0.1:3306)/test")
     // if err != nil {
