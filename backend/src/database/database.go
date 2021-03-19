@@ -13,6 +13,17 @@ type User struct {
 	Password string
 }
 
+type DBModel struct {
+	db *sql.DB
+}
+
+// NewDBModel creates a new database struct
+func NewDBModel(database *sql.DB) *DBModel {
+	return &DBModel{
+		db: database,
+	}
+}
+
 func Connect() (*sql.DB, error) {
 	// Open up our database connection.
 	db, err := sql.Open("mysql", "dori:dori@tcp(localhost:3306)/sharesecurely")
@@ -65,9 +76,9 @@ func GetByUsernameAndPassword(username string, password string) {
 
 }*/
 
-func GetUser(db *sql.DB, id string) (string, string, error) {
+func (model *DBModel) GetUser(id string) (string, string, error) {
 	query :=  fmt.Sprintf("SELECT name, password FROM users WHERE id = $1")
-	rows, err := db.Query(query, id)
+	rows, err := model.db.Query(query, id)
 	if err != nil {
 		return "", "", err
 	}
@@ -82,9 +93,9 @@ func GetUser(db *sql.DB, id string) (string, string, error) {
 	return name, password, nil
 }
 
-func InsertUser(db *sql.DB, p models.Credentials) error {
+func (model *DBModel) InsertUser(p models.Credentials) error {
 	query := fmt.Sprintf("INSERT INTO users (username, password) VALUES ($1, $2)")
-    _, err := db.Query(query, p.Username, p.Password)
+    _, err := model.db.Query(query, p.Username, p.Password)
     if err != nil {
     	return err
 	}

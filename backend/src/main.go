@@ -4,7 +4,6 @@ import (
 	"backend/database"
 	"backend/function"
 	"backend/models"
-	"database/sql"
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/handlers"
@@ -15,7 +14,7 @@ import (
 	"os"
 )
 
-var db *sql.DB
+var dbModel *database.DBModel
 
 func handleRequests() {
 	myRouter := mux.NewRouter().StrictSlash(true)
@@ -45,7 +44,7 @@ func signUp(w http.ResponseWriter, r *http.Request) {
 		w.Write(response)
 		return
 	}
-	database.InsertUser(db, p)
+	dbModel.InsertUser(p)
 	fmt.Println(error)
 	response, _ := json.Marshal(user)
 	fmt.Println("User is getting registered.Username : " + user.Username)
@@ -231,8 +230,8 @@ func recieveFile(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	fmt.Println("Rest API v2.0 - Mux Routers")
-	var err error
-	db, err = database.Connect()
+	db, err := database.Connect()
+	dbModel = database.NewDBModel(db)
 	if err != nil {
 		fmt.Println("Error connecting db")
 		os.Exit(1)
