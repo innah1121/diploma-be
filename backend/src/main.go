@@ -44,8 +44,13 @@ func signUp(w http.ResponseWriter, r *http.Request) {
 		w.Write(response)
 		return
 	}
-	dbModel.InsertUser(p)
-	fmt.Println(error)
+	err = dbModel.InsertUser(p)
+	if err != nil {
+		fmt.Println("Error insert: ", err.Error())
+		response, _ := json.Marshal("Db error")
+		w.Write(response)
+		return
+	}
 	response, _ := json.Marshal(user)
 	fmt.Println("User is getting registered.Username : " + user.Username)
 	w.Write(response)

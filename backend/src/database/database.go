@@ -26,7 +26,7 @@ func NewDBModel(database *sql.DB) *DBModel {
 
 func Connect() (*sql.DB, error) {
 	// Open up our database connection.
-	db, err := sql.Open("mysql", "dori:dori@tcp(localhost:3306)/sharesecurely")
+	db, err := sql.Open("mysql", "sammy:password@tcp(localhost)/test")
 
 	// if there is an error opening the connection, handle it
 	if err != nil {
@@ -38,11 +38,9 @@ func Connect() (*sql.DB, error) {
 		return nil, err
 	}
 
-	// defer the close after has finished executing
-	defer db.Close()
-
 	return db, nil
 }
+
 
 // func Insert(username string, password string) {
 
@@ -76,14 +74,14 @@ func GetByUsernameAndPassword(username string, password string) {
 
 }*/
 
-func (model *DBModel) GetUser(id string) (string, string, error) {
-	var name, password string
-	err := model.db.QueryRow("SELECT id, name FROM tags where id = ?", id).Scan(&name, &password)
+func (model *DBModel) GetUser(usersname string) (string, error) {
+	var password string
+	err := model.db.QueryRow("SELECT password FROM users where username = ?", usersname).Scan(&password)
 	if err != nil {
-		return "", "", err
+		return "", err
 	}
-	fmt.Println("Name: ", name, "Password: ", password)
-	return name, password, nil
+	fmt.Println("Password getting from db: ", password)
+	return password, nil
 }
 
 func (model *DBModel) InsertUser(p models.Credentials) error {
