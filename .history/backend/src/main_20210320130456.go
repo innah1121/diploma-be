@@ -12,8 +12,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"strconv"
-
 )
 
 var dbModel *database.DBModel
@@ -22,11 +20,10 @@ func handleRequests() {
 	myRouter := mux.NewRouter().StrictSlash(true)
 	myRouter.HandleFunc("/register", signUp).Methods("POST")
 	myRouter.HandleFunc("/login", login)
-	myRouter.HandleFunc("/recieveFilesFromDb", recieveFilesFromDb)
 	myRouter.HandleFunc("/storeFile", storeFile).Methods("POST")
 	myRouter.HandleFunc("/loadFile", loadFile)
 	myRouter.HandleFunc("/shareFile", shareFile)
-	myRouter.HandleFunc("/recieveFile", recieveFile)
+	myRouter.HandleFunc("/recieveFile", shareFile)
 	log.Fatal(http.ListenAndServe(":10000", handlers.CORS(handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"}), handlers.AllowedMethods([]string{"GET", "POST", "PUT", "HEAD", "OPTIONS"}), handlers.AllowedOrigins([]string{"*"}))(myRouter)))
 }
 
@@ -72,39 +69,17 @@ func login(w http.ResponseWriter, r *http.Request) {
 		w.Write(response)
 		return
 	}
-	userId, err := dbModel.GetIdByUsernamePassword(username,password)
-	if err != nil {
-		fmt.Println("Error getting: ", err.Error())
-		response, _ := json.Marshal(err.Error())
-		w.Write(response)
-		return
-	}
 	// fmt.Println("Trying to get user from db : " + user)
 	function.InitUser(username, password)
 	us, error := function.GetUser(username, password)
 	if error != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		response, _ := json.Marshal(models.LoginResponse{User: nil, UserId: 0, Error: error})
+		response, _ := json.Marshal(models.LoginResponse{Response: nil, Error: error})
 		w.Write(response)
 		return
 	}
 	fmt.Println("Trying to get user with username : " + us.Username)
-	response, _ := json.Marshal(models.LoginResponse{User: us,  UserId: userId ,Error: nil})
-	w.Write(response)
-}
-
-func recieveFilesFromDb(w http.ResponseWriter, r *http.Request) {
-	v := r.URL.Query()
-    userId := v.Get("userId")
-	i, _ := strconv.Atoi(userId)
-    filenames, err := dbModel.GetFiles(i)
-	if err != nil {
-		fmt.Println("Error getting: ", err.Error())
-		response, _ := json.Marshal(models.FileResponse{Files: nil, Error: err})
-		w.Write(response)
-		return
-	}
-	response, _ := json.Marshal(models.FileResponse{Files: filenames, Error: nil})
+	response, _ := json.Marshal(models.LoginResponse{Response: us, Error: nil})
 	w.Write(response)
 }
 
@@ -199,12 +174,6 @@ func loadFile(w http.ResponseWriter, r *http.Request) {
 	}
 	
 	fmt.Println(data)
-	
-    errorr := ioutil.WriteFile(filename, data, 0777)
-	if errorr != nil {
-		http.Error(w, errorr.Error(), http.StatusBadRequest)
-		return
-	}
 	fmt.Println("Trying to get file with name : " + filename)
 	response, _ := json.Marshal(models.ShareFileResponse{Response: "Loaded succesfully", Error: nil})
 	w.Write(response)
@@ -239,64 +208,35 @@ func shareFile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	fmt.Println(data)
-	
-	
 	fmt.Println("Trying to share file with user : " + recipient)
-	recipientId, err := dbModel.GetIdByUsernamePassword(recipient, recipientPass)
-	if err != nil {
-		fmt.Println("Error getting password of recipient: ", err.Error())
-		response, _ := json.Marshal(err.Error())
-		w.Write(response)
-		return
-	}
-	
-	
-	senderId, err := dbModel.GetIdByUsernamePassword(username, password)
-	if err != nil {
-		fmt.Println("Error getting password of recipient: ", err.Error())
-		response, _ := json.Marshal(err.Error())
-		w.Write(response)
-		return
-	}
-	
-	
-	err = dbModel.InsertFile(filename,senderId,recipientId)
-	if err != nil {
-		fmt.Println("Error insert: ", err.Error())
-		response, _ := json.Marshal("Db error")
-		w.Write(response)
-		return
-	}
-	
-	
 	response, _ := json.Marshal(models.ShareFileResponse{Response: "Shared succesfully", Error: nil})
 	w.Write(response)
 }
 
 func recieveFile(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("File recieving Endpoint Hit")
-	v := r.URL.Query()
-    filename := v.Get("filename")
-	username := v.Get("username")
-	password := v.Get("password")
-	recipientUsr := v.Get("recipientUsr")
-	recipientPass := v.Get("recipientPass")
 	
-	sender, _ := function.GetUser(username, password)
-	recipient, _ := function.GetUser(recipientUsr, recipientPass)
-	magic_string, er := sender.ShareFile(filename, 	recipientUsr)
-
+	var p models.RecieveFileRequest
+	err := json.NewDecoder(r.Body).Decode(&p)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	
+	user, _ := function.GetUser(p.SenderUsr, p.SenderPass)
+	user2, _ := function.GetUser(p.RecipientUsr, p.RecipientPass)
+	magic_string, er := user.ShareFile(p.Filename, p.RecipientUsr)
 	if er != nil {
 		http.Error(w, er.Error(), http.StatusBadRequest)
 		return
 	}
-	error := recipient.ReceiveFile(filename,username, magic_string)
+	error := user2.ReceiveFile("file2", p.SenderUsr, magic_string)
 	
 	if error != nil {
 		http.Error(w, error.Error(), http.StatusBadRequest)
 		return
 	}
-	fmt.Println("Im recieving a file from : " + username)
+	fmt.Println("Trying to share file with user : " + p.RecipientUsr)
 	response, _ := json.Marshal(models.ShareFileResponse{Response: "Recieved succesfully", Error: nil})
 	w.Write(response)
 }

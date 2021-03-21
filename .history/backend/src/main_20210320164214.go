@@ -22,7 +22,6 @@ func handleRequests() {
 	myRouter := mux.NewRouter().StrictSlash(true)
 	myRouter.HandleFunc("/register", signUp).Methods("POST")
 	myRouter.HandleFunc("/login", login)
-	myRouter.HandleFunc("/recieveFilesFromDb", recieveFilesFromDb)
 	myRouter.HandleFunc("/storeFile", storeFile).Methods("POST")
 	myRouter.HandleFunc("/loadFile", loadFile)
 	myRouter.HandleFunc("/shareFile", shareFile)
@@ -72,39 +71,33 @@ func login(w http.ResponseWriter, r *http.Request) {
 		w.Write(response)
 		return
 	}
-	userId, err := dbModel.GetIdByUsernamePassword(username,password)
-	if err != nil {
-		fmt.Println("Error getting: ", err.Error())
-		response, _ := json.Marshal(err.Error())
-		w.Write(response)
-		return
-	}
 	// fmt.Println("Trying to get user from db : " + user)
 	function.InitUser(username, password)
 	us, error := function.GetUser(username, password)
 	if error != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		response, _ := json.Marshal(models.LoginResponse{User: nil, UserId: 0, Error: error})
+		response, _ := json.Marshal(models.LoginResponse{Response: nil, Error: error})
 		w.Write(response)
 		return
 	}
 	fmt.Println("Trying to get user with username : " + us.Username)
-	response, _ := json.Marshal(models.LoginResponse{User: us,  UserId: userId ,Error: nil})
+	response, _ := json.Marshal(models.LoginResponse{Response: us, Error: nil})
 	w.Write(response)
 }
 
 func recieveFilesFromDb(w http.ResponseWriter, r *http.Request) {
 	v := r.URL.Query()
     userId := v.Get("userId")
-	i, _ := strconv.Atoi(userId)
-    filenames, err := dbModel.GetFiles(i)
+	filename, err := dbModel.GetFiles(strconv.Atoi(userId))
 	if err != nil {
 		fmt.Println("Error getting: ", err.Error())
-		response, _ := json.Marshal(models.FileResponse{Files: nil, Error: err})
+		response, _ := json.Marshal(err.Error())
 		w.Write(response)
 		return
 	}
-	response, _ := json.Marshal(models.FileResponse{Files: filenames, Error: nil})
+	
+	fmt.Println("Trying to get filename: " + filename)
+	response, _ := json.Marshal(models.FileResponse{Response: filename, Error: nil})
 	w.Write(response)
 }
 
@@ -199,12 +192,6 @@ func loadFile(w http.ResponseWriter, r *http.Request) {
 	}
 	
 	fmt.Println(data)
-	
-    errorr := ioutil.WriteFile(filename, data, 0777)
-	if errorr != nil {
-		http.Error(w, errorr.Error(), http.StatusBadRequest)
-		return
-	}
 	fmt.Println("Trying to get file with name : " + filename)
 	response, _ := json.Marshal(models.ShareFileResponse{Response: "Loaded succesfully", Error: nil})
 	w.Write(response)

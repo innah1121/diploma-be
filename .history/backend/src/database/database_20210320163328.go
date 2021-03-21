@@ -79,33 +79,6 @@ func (model *DBModel) GetIdByUsernamePassword(username string,password string) (
 	return id, nil
 }
 
-func (model *DBModel) GetFiles(recipient int) ([]string, error) {
- var filenames []string
- var filename string
- rows, err := model.db.Query("SELECT filename FROM files where recipient_id = ?", recipient)
-  if err != nil {
-    // handle this error better than this
-    return nil,err
-  }
-  defer rows.Close()
-  
-  for rows.Next() {
-    err = rows.Scan(&filename)
-    if err != nil {
-      // handle this error
-      return nil,err
-    }
-    fmt.Println(filename)
-    filenames = append(filenames,filename)
-  }
-  // get any error encountered during iteration
-  err = rows.Err()
-  if err != nil {
-    return nil,err
-  }
-  return filenames,err
-}
-
 func (model *DBModel) InsertFile(f string,sender int,recipient int) error {
 	query := fmt.Sprintf("INSERT INTO files (filename, sender_id, recipient_id) VALUES ('%s', %d, %d)", f, sender, recipient)
     _, err := model.db.Query(query)

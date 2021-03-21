@@ -199,12 +199,6 @@ func loadFile(w http.ResponseWriter, r *http.Request) {
 	}
 	
 	fmt.Println(data)
-	
-    errorr := ioutil.WriteFile(filename, data, 0777)
-	if errorr != nil {
-		http.Error(w, errorr.Error(), http.StatusBadRequest)
-		return
-	}
 	fmt.Println("Trying to get file with name : " + filename)
 	response, _ := json.Marshal(models.ShareFileResponse{Response: "Loaded succesfully", Error: nil})
 	w.Write(response)

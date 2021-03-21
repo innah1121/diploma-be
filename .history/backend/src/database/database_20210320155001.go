@@ -41,6 +41,39 @@ func Connect() (*sql.DB, error) {
 	return db, nil
 }
 
+
+// func Insert(username string, password string) {
+
+//     fmt.Println("INSERT: Username: " + username + " | Password: " + password)
+//     insForm, err := db.Prepare("INSERT INTO users(username, password) VALUES (?, ?)")
+//         if err != nil {
+//             panic(err.Error())
+//         }
+//         insForm.Exec(username, password)
+//         fmt.Println("INSERT: Username: " + username + " | Password: " + password)
+
+// }
+
+/*func GetByUsername(username string) {
+
+	selDB, err := db.Query("SELECT * FROM Employee WHERE username=?", username)
+	if err != nil {
+		panic(err.Error())
+	}
+	fmt.Println(selDB)
+
+}
+
+func GetByUsernameAndPassword(username string, password string) {
+
+	selDB, err := db.Query("SELECT * FROM Employee WHERE username=? AND password=?", username, password)
+	if err != nil {
+		panic(err.Error())
+	}
+	fmt.Println(selDB)
+
+}*/
+
 func (model *DBModel) GetUsersPassword(username string) (string, error) {
 	var password string
 	err := model.db.QueryRow("SELECT password FROM users where username = ?", username).Scan(&password)
@@ -71,43 +104,16 @@ func (model *DBModel) GetUserByUsernamePassword(username string,password string)
 
 func (model *DBModel) GetIdByUsernamePassword(username string,password string) (int, error) {
 	var id int
-    err := model.db.QueryRow("SELECT id FROM users where username = ? AND password=?", username, password).Scan(&id)
+    err := model.db.QueryRow("SELECT * FROM users where username = ? AND password=?", username, password).Scan(&id)
 	if err != nil {
-		return 0, err
+		return nil, err
 	}
     fmt.Println("Id being get from db: ", id)
 	return id, nil
 }
 
-func (model *DBModel) GetFiles(recipient int) ([]string, error) {
- var filenames []string
- var filename string
- rows, err := model.db.Query("SELECT filename FROM files where recipient_id = ?", recipient)
-  if err != nil {
-    // handle this error better than this
-    return nil,err
-  }
-  defer rows.Close()
-  
-  for rows.Next() {
-    err = rows.Scan(&filename)
-    if err != nil {
-      // handle this error
-      return nil,err
-    }
-    fmt.Println(filename)
-    filenames = append(filenames,filename)
-  }
-  // get any error encountered during iteration
-  err = rows.Err()
-  if err != nil {
-    return nil,err
-  }
-  return filenames,err
-}
-
-func (model *DBModel) InsertFile(f string,sender int,recipient int) error {
-	query := fmt.Sprintf("INSERT INTO files (filename, sender_id, recipient_id) VALUES ('%s', %d, %d)", f, sender, recipient)
+func (model *DBModel) InsertFile(p models.Credentials) error {
+	query := fmt.Sprintf("INSERT INTO users (username, password) VALUES ('%s', '%s')", p.Username, p.Password)
     _, err := model.db.Query(query)
     if err != nil {
     	return err

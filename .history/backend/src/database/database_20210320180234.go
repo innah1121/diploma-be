@@ -81,8 +81,7 @@ func (model *DBModel) GetIdByUsernamePassword(username string,password string) (
 
 func (model *DBModel) GetFiles(recipient int) ([]string, error) {
  var filenames []string
- var filename string
- rows, err := model.db.Query("SELECT filename FROM files where recipient_id = ?", recipient)
+ rows, err := db.Query("SELECT filename FROM files where recipient_id = ?", recipient)
   if err != nil {
     // handle this error better than this
     return nil,err

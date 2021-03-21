@@ -199,8 +199,7 @@ func loadFile(w http.ResponseWriter, r *http.Request) {
 	}
 	
 	fmt.Println(data)
-	
-    errorr := ioutil.WriteFile(filename, data, 0777)
+    errorr := ioutil.WriteFile("file.txt", data, 0777)
 	if errorr != nil {
 		http.Error(w, errorr.Error(), http.StatusBadRequest)
 		return

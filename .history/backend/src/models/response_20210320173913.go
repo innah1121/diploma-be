@@ -13,7 +13,7 @@ type LoginResponse struct {
 
 
 type FileResponse struct {
-	Files  []string `json:"files,omitempty"`
+	Response  string `json:"response,omitempty"`
 	Error error  `json:"error,omitempty"`
 }
 

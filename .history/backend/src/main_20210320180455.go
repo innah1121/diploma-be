@@ -97,14 +97,16 @@ func recieveFilesFromDb(w http.ResponseWriter, r *http.Request) {
 	v := r.URL.Query()
     userId := v.Get("userId")
 	i, _ := strconv.Atoi(userId)
-    filenames, err := dbModel.GetFiles(i)
+    filename, err := dbModel.GetFiles(i)
 	if err != nil {
 		fmt.Println("Error getting: ", err.Error())
-		response, _ := json.Marshal(models.FileResponse{Files: nil, Error: err})
+		response, _ := json.Marshal(models.FileResponse{Files: "", Error: err})
 		w.Write(response)
 		return
 	}
-	response, _ := json.Marshal(models.FileResponse{Files: filenames, Error: nil})
+	
+	fmt.Println("Trying to get filename: " + filename)
+	response, _ := json.Marshal(models.FileResponse{Files: filename, Error: nil})
 	w.Write(response)
 }
 
@@ -199,12 +201,6 @@ func loadFile(w http.ResponseWriter, r *http.Request) {
 	}
 	
 	fmt.Println(data)
-	
-    errorr := ioutil.WriteFile(filename, data, 0777)
-	if errorr != nil {
-		http.Error(w, errorr.Error(), http.StatusBadRequest)
-		return
-	}
 	fmt.Println("Trying to get file with name : " + filename)
 	response, _ := json.Marshal(models.ShareFileResponse{Response: "Loaded succesfully", Error: nil})
 	w.Write(response)
