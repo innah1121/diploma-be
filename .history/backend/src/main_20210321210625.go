@@ -28,7 +28,6 @@ func handleRequests() {
 	myRouter.HandleFunc("/loadFile", loadFile)
 	myRouter.HandleFunc("/shareFile", shareFile)
 	myRouter.HandleFunc("/recieveFile", recieveFile)
-	myRouter.HandleFunc("/downloadFile", downloadFile)
 	log.Fatal(http.ListenAndServe(":10000", handlers.CORS(handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"}), handlers.AllowedMethods([]string{"GET", "POST", "PUT", "HEAD", "OPTIONS"}), handlers.AllowedOrigins([]string{"*"}))(myRouter)))
 }
 
@@ -224,7 +223,7 @@ func loadFile(w http.ResponseWriter, r *http.Request) {
 }
 
 func downloadFile(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("File download Endpoint Hit")
+	fmt.Println("File loading Endpoint Hit")
 	v := r.URL.Query()
     filename := v.Get("filename")
 	username := v.Get("username")

@@ -23,12 +23,10 @@ func handleRequests() {
 	myRouter.HandleFunc("/register", signUp).Methods("POST")
 	myRouter.HandleFunc("/login", login)
 	myRouter.HandleFunc("/recieveFilesFromDb", recieveFilesFromDb)
-	myRouter.HandleFunc("/recieveFileInfoFromDb", recieveFileInfoFromDb)
 	myRouter.HandleFunc("/storeFile", storeFile).Methods("POST")
 	myRouter.HandleFunc("/loadFile", loadFile)
 	myRouter.HandleFunc("/shareFile", shareFile)
 	myRouter.HandleFunc("/recieveFile", recieveFile)
-	myRouter.HandleFunc("/downloadFile", downloadFile)
 	log.Fatal(http.ListenAndServe(":10000", handlers.CORS(handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"}), handlers.AllowedMethods([]string{"GET", "POST", "PUT", "HEAD", "OPTIONS"}), handlers.AllowedOrigins([]string{"*"}))(myRouter)))
 }
 
@@ -117,11 +115,11 @@ func recieveFileInfoFromDb(w http.ResponseWriter, r *http.Request) {
     filenames, err := dbModel.GetFilesAndSender(i)
 	if err != nil {
 		fmt.Println("Error getting: ", err.Error())
-		response, _ := json.Marshal(models.FileResponse2{Files: nil, Error: err})
+		response, _ := json.Marshal(models.FileResponse{Files: nil, Error: err})
 		w.Write(response)
 		return
 	}
-	response, _ := json.Marshal(models.FileResponse2{Files: filenames, Error: nil})
+	response, _ := json.Marshal(models.FileResponse{Files: filenames, Error: nil})
 	w.Write(response)
 }
 
@@ -203,28 +201,6 @@ func appendFile(w http.ResponseWriter, r *http.Request) {
 
 func loadFile(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("File loading Endpoint Hit")
-	v := r.URL.Query()
-    filename := v.Get("filename")
-	username := v.Get("username")
-	password := v.Get("password")
-	// mbase dhe init user
-	user, _ := function.GetUser(username, password)
-	fmt.Println(user)
-	data, err := user.LoadFile(filename)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-	
-	fmt.Println(data)
-	
-	fmt.Println("Trying to get file with name : " + filename)
-	response, _ := json.Marshal(models.ShareFileResponse{Response: "Loaded succesfully", Error: nil})
-	w.Write(response)
-}
-
-func downloadFile(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("File download Endpoint Hit")
 	v := r.URL.Query()
     filename := v.Get("filename")
 	username := v.Get("username")

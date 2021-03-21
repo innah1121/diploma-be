@@ -1,16 +1,11 @@
 package models
 
 import (
+	"backend/database"
 	"backend/function"
 	
-	
 )
-
-
-type FileDb struct {
-	Sender string
-	Filename string
-}
+var dbModel *database.DBModel
 
 type LoginResponse struct {
 	User  *function.User `json:"user,omitempty"`
@@ -25,7 +20,7 @@ type FileResponse struct {
 }
 
 type FileResponse2 struct {
-	Files  []FileDb `json:"files,omitempty"`
+	Files  []dbModel.File `json:"files,omitempty"`
 	Error error  `json:"error,omitempty"`
 }
 

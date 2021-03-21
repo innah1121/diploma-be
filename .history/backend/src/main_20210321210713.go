@@ -28,7 +28,6 @@ func handleRequests() {
 	myRouter.HandleFunc("/loadFile", loadFile)
 	myRouter.HandleFunc("/shareFile", shareFile)
 	myRouter.HandleFunc("/recieveFile", recieveFile)
-	myRouter.HandleFunc("/downloadFile", downloadFile)
 	log.Fatal(http.ListenAndServe(":10000", handlers.CORS(handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"}), handlers.AllowedMethods([]string{"GET", "POST", "PUT", "HEAD", "OPTIONS"}), handlers.AllowedOrigins([]string{"*"}))(myRouter)))
 }
 

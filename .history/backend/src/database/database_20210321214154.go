@@ -13,6 +13,10 @@ type User struct {
 	Password string
 }
 
+type Filee struct {
+	Sender string
+	Filename string
+}
 
 type DBModel struct {
 	db *sql.DB
@@ -108,8 +112,8 @@ func (model *DBModel) GetFiles(recipient int) ([]string, error) {
 }
 // SELECT files.filename, users.username FROM files INNER JOIN users ON files.sender_id = users.id where files.recipient_id = 6
 
-func (model *DBModel) GetFilesAndSender(recipient int) ([]models.FileDb, error) {
-	var records []models.FileDb
+func (model *DBModel) GetFilesAndSender(recipient int) ([]Filee, error) {
+	var records []Filee
 	var filename string
 	var username string
 	rows, err := model.db.Query("SELECT files.filename, users.username FROM files INNER JOIN users ON files.sender_id = users.id where files.recipient_id = ?", recipient)
@@ -126,7 +130,7 @@ func (model *DBModel) GetFilesAndSender(recipient int) ([]models.FileDb, error) 
 		 return nil,err
 	   }
 	   fmt.Println(filename)
-	   record := models.FileDb {
+	   record := File {
         Filename: filename,
         Sender: username,
        }

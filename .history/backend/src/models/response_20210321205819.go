@@ -3,11 +3,9 @@ package models
 import (
 	"backend/function"
 	
-	
 )
 
-
-type FileDb struct {
+type File struct {
 	Sender string
 	Filename string
 }
@@ -25,7 +23,7 @@ type FileResponse struct {
 }
 
 type FileResponse2 struct {
-	Files  []FileDb `json:"files,omitempty"`
+	Files  []File `json:"files,omitempty"`
 	Error error  `json:"error,omitempty"`
 }
 

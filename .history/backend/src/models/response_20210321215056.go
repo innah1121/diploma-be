@@ -1,6 +1,7 @@
 package models
 
 import (
+	"backend/database"
 	"backend/function"
 	
 	
@@ -25,7 +26,7 @@ type FileResponse struct {
 }
 
 type FileResponse2 struct {
-	Files  []FileDb `json:"files,omitempty"`
+	Files  []File `json:"files,omitempty"`
 	Error error  `json:"error,omitempty"`
 }
 

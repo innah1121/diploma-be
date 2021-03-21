@@ -13,6 +13,10 @@ type User struct {
 	Password string
 }
 
+type File struct {
+	Sender string
+	Filename string
+}
 
 type DBModel struct {
 	db *sql.DB
@@ -80,6 +84,7 @@ func (model *DBModel) GetIdByUsernamePassword(username string,password string) (
 	return id, nil
 }
 
+// SELECT files.filename, users.username FROM files INNER JOIN users ON files.sender_id = users.id where files.recipient_id = 6
 func (model *DBModel) GetFiles(recipient int) ([]string, error) {
  var filenames []string
  var filename string
@@ -106,13 +111,11 @@ func (model *DBModel) GetFiles(recipient int) ([]string, error) {
   }
   return filenames,err
 }
-// SELECT files.filename, users.username FROM files INNER JOIN users ON files.sender_id = users.id where files.recipient_id = 6
 
-func (model *DBModel) GetFilesAndSender(recipient int) ([]models.FileDb, error) {
-	var records []models.FileDb
+func (model *DBModel) GetFilesAndSender(recipient int) ([]string, error) {
+	var filenames []string
 	var filename string
-	var username string
-	rows, err := model.db.Query("SELECT files.filename, users.username FROM files INNER JOIN users ON files.sender_id = users.id where files.recipient_id = ?", recipient)
+	rows, err := model.db.Query("SELECT filename FROM files where recipient_id = ?", recipient)
 	 if err != nil {
 	   // handle this error better than this
 	   return nil,err
@@ -120,24 +123,20 @@ func (model *DBModel) GetFilesAndSender(recipient int) ([]models.FileDb, error) 
 	 defer rows.Close()
 	 
 	 for rows.Next() {
-	   err = rows.Scan(&filename,&username)
+	   err = rows.Scan(&filename)
 	   if err != nil {
 		 // handle this error
 		 return nil,err
 	   }
 	   fmt.Println(filename)
-	   record := models.FileDb {
-        Filename: filename,
-        Sender: username,
-       }
-	   records = append(records,record)
+	   filenames = append(filenames,filename)
 	 }
 	 // get any error encountered during iteration
 	 err = rows.Err()
 	 if err != nil {
 	   return nil,err
 	 }
-	 return records,err
+	 return filenames,err
    }
 
 func (model *DBModel) InsertFile(f string,sender int,recipient int) error {

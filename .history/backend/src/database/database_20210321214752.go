@@ -108,8 +108,8 @@ func (model *DBModel) GetFiles(recipient int) ([]string, error) {
 }
 // SELECT files.filename, users.username FROM files INNER JOIN users ON files.sender_id = users.id where files.recipient_id = 6
 
-func (model *DBModel) GetFilesAndSender(recipient int) ([]models.FileDb, error) {
-	var records []models.FileDb
+func (model *DBModel) GetFilesAndSender(recipient int) ([]File, error) {
+	var records []File
 	var filename string
 	var username string
 	rows, err := model.db.Query("SELECT files.filename, users.username FROM files INNER JOIN users ON files.sender_id = users.id where files.recipient_id = ?", recipient)
@@ -126,7 +126,7 @@ func (model *DBModel) GetFilesAndSender(recipient int) ([]models.FileDb, error) 
 		 return nil,err
 	   }
 	   fmt.Println(filename)
-	   record := models.FileDb {
+	   record := File {
         Filename: filename,
         Sender: username,
        }
