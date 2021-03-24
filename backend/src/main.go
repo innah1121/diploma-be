@@ -13,6 +13,10 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"path/filepath"
+	"io"
+	"net"
+	"time"
 
 )
 
@@ -29,7 +33,88 @@ func handleRequests() {
 	myRouter.HandleFunc("/shareFile", shareFile)
 	myRouter.HandleFunc("/recieveFile", recieveFile)
 	myRouter.HandleFunc("/downloadFile", downloadFile)
+	myRouter.HandleFunc("/test", test)
+	myRouter.HandleFunc("/testt", Index)
 	log.Fatal(http.ListenAndServe(":10000", handlers.CORS(handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"}), handlers.AllowedMethods([]string{"GET", "POST", "PUT", "HEAD", "OPTIONS"}), handlers.AllowedOrigins([]string{"*"}))(myRouter)))
+}
+
+func test(w http.ResponseWriter, r *http.Request) {
+	v := r.URL.Query()
+	filename := v.Get("filename")
+	path, _ := os.Getwd()
+    // handle err
+    fmt.Println(path)
+	fmt.Println(filepath.Join(path, filename))
+	url := filepath.Join(path, filename)
+	fmt.Println(url)
+
+	// file, _ := os.Open(filename)
+	// fmt.Println(file)
+    
+	w.Header().Set("Content-Disposition", "attachment; filename=" + filename)
+	w.Header().Set("Content-Type", r.Header.Get("Content-Type"))
+	w.Header().Set("Content-Length", r.Header.Get("Content-Length"))
+    b, err := ioutil.ReadFile(filename)
+    if err != nil {
+        panic(err)
+    }
+	fmt.Println(b)
+	//stream the body to the client without fully loading it into memory
+	// io.Copy(w, b)
+	w.Write(b)
+
+}
+
+func Index(w http.ResponseWriter, r *http.Request) {
+	v := r.URL.Query()
+	filename := v.Get("filename")
+	url := "http://localhost:10000/test?filename=" + filename
+
+	timeout := time.Duration(5) * time.Second
+	transport := &http.Transport{
+		ResponseHeaderTimeout: timeout,
+		Dial: func(network, addr string) (net.Conn, error) {
+			return net.DialTimeout(network, addr, timeout)
+		},
+		DisableKeepAlives: true,
+	}
+	client := &http.Client{
+		Transport: transport,
+	}
+	resp, err := client.Get(url)
+	if err != nil {
+		fmt.Println(err)
+	}
+	defer resp.Body.Close()
+
+	//copy the relevant headers. If you want to preserve the downloaded file name, extract it with go's url parser.
+	w.Header().Set("Content-Disposition", "attachment; filename="+ filename)
+	w.Header().Set("Content-Type", r.Header.Get("Content-Type"))
+	w.Header().Set("Content-Length", r.Header.Get("Content-Length"))
+
+	//stream the body to the client without fully loading it into memory
+	io.Copy(w, resp.Body)
+}
+
+func DownloadFile(filepath string, url string) error {
+
+	// Get the data
+	resp, err := http.Get(url)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	// Create the file
+	out, err := os.Create(filepath)
+	if err != nil {
+		return err
+	}
+	defer out.Close()
+
+	// Write the body to file
+	_, err = io.Copy(out, resp.Body)
+	return err
 }
 
 func signUp(w http.ResponseWriter, r *http.Request) {
@@ -92,6 +177,33 @@ func login(w http.ResponseWriter, r *http.Request) {
 	}
 	fmt.Println("Trying to get user with username : " + us.Username)
 	response, _ := json.Marshal(models.LoginResponse{User: us,  UserId: userId ,Error: nil})
+	w.Write(response)
+}
+
+func downloadFile(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("File download Endpoint Hit")
+	v := r.URL.Query()
+    filename := v.Get("filename")
+	username := v.Get("username")
+	password := v.Get("password")
+	// mbase dhe init user
+	user, _ := function.GetUser(username, password)
+	fmt.Println(user)
+	data, err := user.LoadFile(filename)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	
+	fmt.Println(data)
+	
+    errorr := ioutil.WriteFile(filename, data, 0777)
+	if errorr != nil {
+		http.Error(w, errorr.Error(), http.StatusBadRequest)
+		return
+	}
+	fmt.Println("Trying to get file with name : " + filename)
+	response, _ := json.Marshal(models.ShareFileResponse{Response: "Loaded succesfully", Error: nil})
 	w.Write(response)
 }
 
@@ -223,32 +335,6 @@ func loadFile(w http.ResponseWriter, r *http.Request) {
 	w.Write(response)
 }
 
-func downloadFile(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("File download Endpoint Hit")
-	v := r.URL.Query()
-    filename := v.Get("filename")
-	username := v.Get("username")
-	password := v.Get("password")
-	// mbase dhe init user
-	user, _ := function.GetUser(username, password)
-	fmt.Println(user)
-	data, err := user.LoadFile(filename)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-	
-	fmt.Println(data)
-	
-    errorr := ioutil.WriteFile(filename, data, 0777)
-	if errorr != nil {
-		http.Error(w, errorr.Error(), http.StatusBadRequest)
-		return
-	}
-	fmt.Println("Trying to get file with name : " + filename)
-	response, _ := json.Marshal(models.ShareFileResponse{Response: "Loaded succesfully", Error: nil})
-	w.Write(response)
-}
 // filename , recipient  needed
 func shareFile(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("File sharing Endpoint Hit")
@@ -344,12 +430,16 @@ func recieveFile(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	fmt.Println("Rest API v2.0 - Mux Routers")
+	path, _ := os.Getwd()
+    // handle err
+    fmt.Println(path)
 	db, err := database.Connect()
 	dbModel = database.NewDBModel(db)
 	if err != nil {
 		fmt.Println("Error connecting db")
 		os.Exit(1)
 	}
+
 	fmt.Println("Connected to db.")
 	handleRequests()
 }

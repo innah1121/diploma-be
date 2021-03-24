@@ -27,7 +27,7 @@ func NewDBModel(database *sql.DB) *DBModel {
 
 func Connect() (*sql.DB, error) {
 	// Open up our database connection.
-	db, err := sql.Open("mysql", "dori:dori@tcp(localhost)/sharesecurely")
+	db, err := sql.Open("mysql", "dori:dori@tcp(localhost)/sharesecurily")
 
 	// if there is an error opening the connection, handle it
 	if err != nil {
