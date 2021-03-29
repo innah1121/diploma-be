@@ -44,7 +44,7 @@ func Connect() (*sql.DB, error) {
 
 func (model *DBModel) GetUsersPassword(username string) (string, error) {
 	var password string
-	err := model.db.QueryRow("SELECT password FROM users where username = ?", username).Scan(&password)
+	err := model.db.QueryRow("SELECT password FROM users where username =?", username).Scan(&password)
 	if err != nil {
 		return "", err
 	}

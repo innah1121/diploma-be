@@ -34,7 +34,7 @@ func handleRequests() {
 	myRouter.HandleFunc("/recieveFile", recieveFile)
 	myRouter.HandleFunc("/downloadFile", downloadFile)
 	myRouter.HandleFunc("/test", test)
-	myRouter.HandleFunc("/testt", Index)
+	myRouter.HandleFunc("/download", Index)
 	log.Fatal(http.ListenAndServe(":10000", handlers.CORS(handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"}), handlers.AllowedMethods([]string{"GET", "POST", "PUT", "HEAD", "OPTIONS"}), handlers.AllowedOrigins([]string{"*"}))(myRouter)))
 }
 
@@ -404,11 +404,15 @@ func recieveFile(w http.ResponseWriter, r *http.Request) {
 	v := r.URL.Query()
     filename := v.Get("filename")
 	username := v.Get("username")
-	password := v.Get("password")
 	recipientUsr := v.Get("recipientUsr")
 	recipientPass := v.Get("recipientPass")
 	
-	sender, _ := function.GetUser(username, password)
+	senderPass, err := dbModel.GetUsersPassword(username)
+	if err != nil {
+		fmt.Println("Error getting password of recipient: ", err.Error())
+        return
+	}
+	sender, _ := function.GetUser(username, senderPass)
 	recipient, _ := function.GetUser(recipientUsr, recipientPass)
 	magic_string, er := sender.ShareFile(filename, 	recipientUsr)
 
