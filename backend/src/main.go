@@ -128,6 +128,14 @@ func signUp(w http.ResponseWriter, r *http.Request) {
 	}
 	fmt.Println("username " + p.Username)
 	fmt.Println("password " + p.Password)
+		// check if exists in my local db ,if return result i go on with the other logic
+	userExist, _ := dbModel.GetUserByUsernamePassword(p.Username,p.Password)
+	if userExist != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		response, _ := json.Marshal(models.RegisterResponse{Message: "User exists already"})
+		w.Write(response)
+		return
+	}
 	user, error := function.InitUser(p.Username, p.Password)
 	if error != nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -152,17 +160,19 @@ func login(w http.ResponseWriter, r *http.Request) {
     username := v.Get("username")
 	password := v.Get("password")
 	// check if exists in my local db ,if return result i go on with the other logic
-	_, err := dbModel.GetUserByUsernamePassword(username,password)
-	if err != nil {
-		fmt.Println("Error getting: ", err.Error())
-		response, _ := json.Marshal(err.Error())
+	_, er := dbModel.GetUserByUsernamePassword(username,password)
+	if er != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Println("Error getting: ", er.Error())
+		response, _ := json.Marshal(models.LoginResponse{User: nil, UserId: 0, Error: er})
 		w.Write(response)
 		return
 	}
 	userId, err := dbModel.GetIdByUsernamePassword(username,password)
 	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
 		fmt.Println("Error getting: ", err.Error())
-		response, _ := json.Marshal(err.Error())
+		response, _ := json.Marshal(models.LoginResponse{User: nil, UserId: 0, Error: err})
 		w.Write(response)
 		return
 	}

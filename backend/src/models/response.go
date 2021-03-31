@@ -18,6 +18,11 @@ type LoginResponse struct {
 	Error error  `json:"error,omitempty"`
 }
 
+type RegisterResponse struct {
+	
+	Message string  `json:"Message,omitempty"`
+}
+
 
 type FileResponse struct {
 	Files  []string `json:"files,omitempty"`
